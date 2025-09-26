@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Bookie Tracker | Matched Betting Companion</title>
+    <style>
+        :root {
+            --primary: #1a1d29;
+            --secondary: #2d3247;
+            --accent: #4a6cf7;
+            --accent-dark: #3a5ae5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #374151;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 25px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+        
+        .logo {
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (min-width: 992px) {
+            .dashboard {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--secondary);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        
+        .card h2 {
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h2 i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        
+        .profit {
+            color: var(--success);
+        }
+        
+        .loss {
+            color: var(--danger);
+        }
+        
+        .neutral {
+            color: var(--text);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        input, select, textarea, button {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
+        }
+        
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: var(--accent-dark);
+        }
+        
+        button i {
+            font-size: 1.1rem;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #0da271;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: #1f2937;
+        }
+        
+        .btn-warning:hover {
+            background: #e58a0b;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .status-pending {
+            color: var(--warning);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-won {
+            color: var(--success);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-lost {
+            color: var(--danger);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .actions button {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            width: auto;
+            flex: 1;
+        }
+        
+        .calculator {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .calc-result {
+            background: rgba(255, 255, 255, 0.07);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab:hover {
+            color: var(--text);
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid var(--accent);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .bet-type-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(74, 108, 247, 0.2);
+            color: var(--accent);
+        }
+        
+        .bookie-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .example-bet {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .example-bet h4 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        
+        .example-bet p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 5px;
+        }
+        
+        .badge-primary {
+            background: rgba(74, 108, 247, 0.2);
+            color: var(--accent);
+        }
+        
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+        
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        
+        /* Icons */
+        .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div>
+                    <div class="logo"><span class="logo-icon">₿</span> Premium Bookie Tracker</div>
+                    <p class="subtitle">Advanced matched betting tracker for UK bookmakers with profit calculation and data persistence</p>
+                </div>
+                <div>
+                    <button onclick="exportData()"><i class="fas fa-download"></i> Export Data</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+            <div class="tab" data-tab="bets"><i class="fas fa-list"></i> My Bets</div>
+            <div class="tab" data-tab="calculator"><i class="fas fa-calculator"></i> Calculator</div>
+            <div class="tab" data-tab="how-to-use"><i class="fas fa-book"></i> How to Use</div>
+        </div>
+        
+        <div class="tab-content active" id="dashboard">
+            <div class="dashboard">
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> Profit Overview</h2>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Total Matched Bets</div>
+                            <div class="stat-value neutral" id="total-bets">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Active Offers</div>
+                            <div class="stat-value neutral" id="active-bets">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Completed Offers</div>
+                            <div class="stat-value neutral" id="completed-bets">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Success Rate</div>
+                            <div class="stat-value neutral" id="success-rate">0%</div>
+                        </div>
+                    </div>
+                    <div class="stat-item" style="grid-column: 1 / -1; margin-top: 15px;">
+                        <div class="stat-label">Total Guaranteed Profit</div>
+                        <div class="stat-value profit" id="net-profit">£0.00</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2><i class="fas fa-plus-circle"></i> Add New Bet</h2>
+                    <form id="bet-form">
+                        <div class="form-group">
+                            <label for="bookmaker">Bookmaker</label>
+                            <select id="bookmaker" required>
+                                <option value="">Select bookmaker</option>
+                                <option value="Bet365">Bet365</option>
+                                <option value="William Hill">William Hill</option>
+                                <option value="Ladbrokes">Ladbrokes</option>
+                                <option value="Coral">Coral</option>
+                                <option value="Paddy Power">Paddy Power</option>
+                                <option value="Sky Bet">Sky Bet</option>
+                                <option value="Betfair">Betfair</option>
+                                <option value="Betway">Betway</option>
+                                <option value="Unibet">Unibet</option>
+                                <option value="888Sport">888Sport</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="event">Event</label>
+                            <input type="text" id="event" required placeholder="e.g., Man City vs Arsenal">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bet-type">Bet Type</label>
+                            <select id="bet-type" required>
+                                <option value="">Select bet type</option>
+                                <option value="Free Bet">Free Bet</option>
+                                <option value="Risk-Free">Risk-Free</option>
+                                <option value="Money Back">Money Back</option>
+                                <option value="Acca Insurance">Acca Insurance</option>
+                                <option value="Price Boost">Price Boost</option>
+                                <option value="Extra Place">Extra Place</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="back-selection">Back Selection</label>
+                            <input type="text" id="back-selection" required placeholder="e.g., Man City to win">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lay-selection">Lay Selection</label>
+                            <input type="text" id="lay-selection" required placeholder="e.g., Man City to win">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="back-odds">Back Odds</label>
+                            <input type="number" id="back-odds" step="0.01" required placeholder="e.g., 2.50">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lay-odds">Lay Odds</label>
+                            <input type="number" id="lay-odds" step="0.01" required placeholder="e.g., 2.52">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="stake">Stake (£)</label>
+                            <input type="number" id="stake" step="0.01" required placeholder="e.g., 25.00">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Won">Won</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notes">Notes (Optional)</label>
+                            <textarea id="notes" rows="2" placeholder="Any additional notes about this bet"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-success"><i class="fas fa-save"></i> Add Bet</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-lightbulb"></i> Quick Tips</h2>
+                <div class="instructions">
+                    <p><strong>Matched Betting Strategy:</strong> Always calculate your lay stake using a matched betting calculator to ensure you're covering all outcomes. Track every offer to maximize profits and avoid missing out on guaranteed money.</p>
+                    <p><strong>Bankroll Management:</strong> Never use more than 5% of your bankroll on a single offer. Keep detailed records of all your bets to identify what strategies work best for you.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="bets">
+            <div class="card">
+                <h2><i class="fas fa-history"></i> Betting History</h2>
+                <div style="overflow-x: auto;">
+                    <table id="bets-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Bookmaker</th>
+                                <th>Type</th>
+                                <th>Event</th>
+                                <th>Back/Lay</th>
+                                <th>Stake</th>
+                                <th>Guaranteed Profit</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bets-list">
+                            <!-- Bets will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="calculator">
+            <div class="card">
+                <h2><i class="fas fa-calculator"></i> Matched Betting Calculator</h2>
+                <p>Calculate your lay stake and guaranteed profit for any matched bet</p>
+                
+                <div class="calculator">
+                    <div class="form-group">
+                        <label for="calc-back-odds">Back Odds</label>
+                        <input type="number" id="calc-back-odds" step="0.01" placeholder="Enter back odds">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="calc-lay-odds">Lay Odds</label>
+                        <input type="number" id="calc-lay-odds" step="0.01" placeholder="Enter lay odds">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="calc-stake">Back Stake (£)</label>
+                        <input type="number" id="calc-stake" step="0.01" placeholder="Enter stake amount">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="calc-commission">Exchange Commission (%)</label>
+                        <input type="number" id="calc-commission" step="0.1" value="2.0" placeholder="Commission rate">
+                    </div>
+                    
+                    <button id="calculate-btn" class="btn-success"><i class="fas fa-calculator"></i> Calculate</button>
+                    
+                    <div class="calc-result">
+                        <div>Lay Stake Required: <span id="lay-stake">£0.00</span></div>
+                        <div>Guaranteed Profit: <span id="guaranteed-profit">£0.00</span></div>
+                        <div>Profit if Back Wins: <span id="profit-back-win">£0.00</span></div>
+                        <div>Profit if Lay Wins: <span id="profit-lay-win">£0.00</span></div>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 30px;"><i class="fas fa-list-alt"></i> Example Matched Bets</h3>
+                <p>Here are some realistic matched betting examples:</p>
+                
+                <div class="example-bet">
+                    <h4>Bet365 £50 In-Play Offer</h4>
+                    <p><span class="badge badge-primary">Free Bet</span> <span class="badge badge-success">Bet365</span></p>
+                    <p><strong>Strategy:</strong> Place a £50 qualifying bet on a football match, then use the free £50 in-play bet with matched betting to guarantee profit.</p>
+                    <p><strong>Guaranteed Profit:</strong> £35-£40</p>
+                </div>
+                
+                <div class="example-bet">
+                    <h4>William Hill Bet £10 Get £30</h4>
+                    <p><span class="badge badge-primary">Risk-Free</span> <span class="badge badge-success">William Hill</span></p>
+                    <p><strong>Strategy:</strong> Place a £10 bet at odds of 4.0 or higher, get 3x £10 free bets. Use matched betting to extract value from all free bets.</p>
+                    <strong>Guaranteed Profit:</strong> £25-£28</p>
+                </div>
+                
+                <div class="example-bet">
+                    <h4>Paddy Power Money Back Special</h4>
+                    <p><span class="badge badge-primary">Money Back</span> <span class="badge badge-success">Paddy Power</span></p>
+                    <p><strong>Strategy:</strong> Bet on a specific market (e.g., first goalscorer) and get money back as cash if your selection loses. Lay the bet to guarantee profit.</p>
+                    <p><strong>Guaranteed Profit:</strong> 80% of stake</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="how-to-use">
+            <div class="card">
+                <h2><i class="fas fa-book"></i> How to Use This Matched Betting Tracker</h2>
+                
+                <div class="instructions">
+                    <h3>Getting Started</h3>
+                    <ol>
+                        <li><strong>Add Your First Bet:</strong> Go to the Dashboard tab and fill in the bet details including bookmaker, event, odds, and stake.</li>
+                        <li><strong>Use the Calculator:</strong> Before placing bets, use the calculator to determine the correct lay stake and guaranteed profit.</li>
+                        <li><strong>Track Your Progress:</strong> Monitor your profit on the Dashboard and view detailed history in the My Bets tab.</li>
+                    </ol>
+                </div>
+                
+                <div class="instructions">
+                    <h3>Understanding Matched Betting</h3>
+                    <p>Matched betting is a risk-free method to profit from bookmaker promotions by covering all outcomes of an event.</p>
+                    <p><strong>Key Concepts:</strong></p>
+                    <ul>
+                        <li><strong>Back Bet:</strong> Betting for something to happen (placed with a bookmaker)</li>
+                        <li><strong>Lay Bet:</strong> Betting against something happening (placed on a betting exchange)</li>
+                        <li><strong>Qualifying Bet:</strong> Initial bet to unlock a promotion</li>
+                        <li><strong>Free Bet:</strong> Risk-free bet obtained through a promotion</li>
+                    </ul>
+                </div>
+                
+                <div class="instructions">
+                    <h3>Step-by-Step Process</h3>
+                    <ol>
+                        <li><strong>Find an Offer:</strong> Identify a profitable bookmaker promotion</li>
+                        <li><strong>Calculate Stakes:</strong> Use the calculator to determine back and lay stakes</li>
+                        <li><strong>Place Your Bets:</strong> Place the back bet with the bookmaker and the lay bet on the exchange</li>
+                        <li><strong>Record the Bet:</strong> Add the bet to your tracker with all details</li>
+                        <li><strong>Update Status:</strong> Mark the bet as won/lost once the event concludes</li>
+                        <li><strong>Repeat:</strong> Move on to the next profitable offer</li>
+                    </ol>
+                </div>
+                
+                <div class="instructions">
+                    <h3>Pro Tips for Success</h3>
+                    <ul>
+                        <li>Start with simple offers like "Bet £10 Get £30" before moving to more complex promotions</li>
+                        <li>Always read the terms and conditions of each offer carefully</li>
+                        <li>Keep separate bankrolls for bookmakers and betting exchanges</li>
+                        <li>Track every bet to identify your most profitable strategies</li>
+                        <li>Be organized and methodical - matched betting rewards consistency</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Premium Bookie Tracker &copy; 2025 | Designed for Matched Betting Professionals | All data stored locally on your device</p>
+        </footer>
+    </div>
+
+    <script>
+        // Sample data with realistic matched betting examples
+        const sampleBets = [
+            {
+                id: 1,
+                date: '2025-03-15',
+                bookmaker: 'Bet365',
+                event: 'Man City vs Arsenal',
+                type: 'Free Bet',
+                backSelection: 'Over 2.5 Goals',
+                laySelection: 'Over 2.5 Goals',
+                backOdds: 1.85,
+                layOdds: 1.87,
+                stake: 50,
+                status: 'Won',
+                notes: 'Bet365 £50 free bet offer - guaranteed profit'
+            },
+            {
+                id: 2,
+                date: '2025-03-12',
+                bookmaker: 'William Hill',
+                event: 'Chelsea vs Liverpool',
+                type: 'Risk-Free',
+                backSelection: 'Both Teams to Score - Yes',
+                laySelection: 'Both Teams to Score - Yes',
+                backOdds: 1.75,
+                layOdds: 1.77,
+                stake: 20,
+                status: 'Lost',
+                notes: 'WH bet £20 get £20 free bet - qualifying bet'
+            },
+            {
+                id: 3,
+                date: '2025-03-10',
+                bookmaker: 'Paddy Power',
+                event: 'Newcastle vs Tottenham',
+                type: 'Money Back',
+                backSelection: 'Harry Kane to Score First',
+                laySelection: 'Harry Kane to Score First',
+                backOdds: 4.50,
+                layOdds: 4.60,
+                stake: 10,
+                status: 'Pending',
+                notes: 'Money back as cash if Kane scores but Spurs lose'
+            }
+        ];
+
+        // Initialize bets from localStorage or with sample data
+        let bets = JSON.parse(localStorage.getItem('premiumBookieBets')) || sampleBets;
+        
+        // DOM elements
+        const betForm = document.getElementById('bet-form');
+        const betsList = document.getElementById('bets-list');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Load bets and update stats
+            loadBets();
+            updateStats();
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Form submission
+            betForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                addBet();
+            });
+            
+            // Calculator
+            calculateBtn.addEventListener('click', calculateMatchedBet);
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+        }
+        
+        // Load bets into the table
+        function loadBets() {
+            betsList.innerHTML = '';
+            
+            if (bets.length === 0) {
+                betsList.innerHTML = '<tr><td colspan="9" style="text-align: center;">No bets recorded yet. Add your first matched bet above!</td></tr>';
+                return;
+            }
+            
+            bets.forEach(bet => {
+                const guaranteedProfit = calculateGuaranteedProfit(bet.backOdds, bet.layOdds, bet.stake);
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${formatDate(bet.date)}</td>
+                    <td><span class="bookie-tag">${bet.bookmaker}</span></td>
+                    <td><span class="bet-type-tag">${bet.type}</span></td>
+                    <td>${bet.event}</td>
+                    <td>${bet.backOdds}/${bet.layOdds}</td>
+                    <td>£${bet.stake.toFixed(2)}</td>
+                    <td class="profit">£${guaranteedProfit.toFixed(2)}</td>
+                    <td class="status-${bet.status.toLowerCase()}">
+                        <i class="fas fa-${getStatusIcon(bet.status)}"></i> ${bet.status}
+                    </td>
+                    <td class="actions">
+                        <button class="btn-success" onclick="updateBetStatus(${bet.id}, 'Won')"><i class="fas fa-check"></i></button>
+                        <button class="btn-danger" onclick="updateBetStatus(${bet.id}, 'Lost')"><i class="fas fa-times"></i></button>
+                        <button class="btn-warning" onclick="deleteBet(${bet.id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                
+                betsList.appendChild(row);
+            });
+        }
+        
+        // Add a new bet
+        function addBet() {
+            const bookmaker = document.getElementById('bookmaker').value;
+            const event = document.getElementById('event').value;
+            const type = document.getElementById('bet-type').value;
+            const backSelection = document.getElementById('back-selection').value;
+            const laySelection = document.getElementById('lay-selection').value;
+            const backOdds = parseFloat(document.getElementById('back-odds').value);
+            const layOdds = parseFloat(document.getElementById('lay-odds').value);
+            const stake = parseFloat(document.getElementById('stake').value);
+            const date = document.getElementById('date').value;
+            const status = document.getElementById('status').value;
+            const notes = document.getElementById('notes').value;
+            
+            const newBet = {
+                id: bets.length > 0 ? Math.max(...bets.map(b => b.id)) + 1 : 1,
+                date,
+                bookmaker,
+                event,
+                type,
+                backSelection,
+                laySelection,
+                backOdds,
+                layOdds,
+                stake,
+                status,
+                notes
+            };
+            
+            bets.push(newBet);
+            saveBets();
+            loadBets();
+            updateStats();
+            betForm.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Show success message
+            alert('Bet added successfully!');
+            
+            // Switch to bets tab to see the new entry
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('.tab[data-tab="bets"]').classList.add('active');
+            document.getElementById('bets').classList.add('active');
+        }
+        
+        // Update bet status
+        function updateBetStatus(id, status) {
+            const betIndex = bets.findIndex(bet => bet.id === id);
+            if (betIndex !== -1) {
+                bets[betIndex].status = status;
+                saveBets();
+                loadBets();
+                updateStats();
+            }
+        }
+        
+        // Delete a bet
+        function deleteBet(id) {
+            if (confirm('Are you sure you want to delete this bet? This action cannot be undone.')) {
+                bets = bets.filter(bet => bet.id !== id);
+                saveBets();
+                loadBets();
+                updateStats();
+            }
+        }
+        
+        // Calculate matched betting stakes and profit
+        function calculateMatchedBet() {
+            const backOdds = parseFloat(document.getElementById('calc-back-odds').value) || 0;
+            const layOdds = parseFloat(document.getElementById('calc-lay-odds').value) || 0;
+            const stake = parseFloat(document.getElementById('calc-stake').value) || 0;
+            const commission = parseFloat(document.getElementById('calc-commission').value) || 0;
+            
+            if (backOdds === 0 || layOdds === 0 || stake === 0) {
+                alert('Please enter valid odds and stake values');
+                return;
+            }
+            
+            // Calculate lay stake
+            const layStake = (backOdds * stake) / (layOdds - (commission / 100));
+            
+            // Calculate profit scenarios
+            const profitIfBackWins = (stake * (backOdds - 1)) - (layStake * (layOdds - 1));
+            const profitIfLayWins = (layStake * (1 - (commission / 100))) - stake;
+            
+            // Guaranteed profit (should be very similar in both cases for proper matched betting)
+            const guaranteedProfit = Math.min(profitIfBackWins, profitIfLayWins);
+            
+            document.getElementById('lay-stake').textContent = `£${layStake.toFixed(2)}`;
+            document.getElementById('guaranteed-profit').textContent = `£${guaranteedProfit.toFixed(2)}`;
+            document.getElementById('profit-back-win').textContent = `£${profitIfBackWins.toFixed(2)}`;
+            document.getElementById('profit-lay-win').textContent = `£${profitIfLayWins.toFixed(2)}`;
+            
+            // Color code the profits
+            document.getElementById('guaranteed-profit').className = guaranteedProfit >= 0 ? 'profit' : 'loss';
+        }
+        
+        // Calculate guaranteed profit for a bet
+        function calculateGuaranteedProfit(backOdds, layOdds, stake, commission = 2) {
+            const layStake = (backOdds * stake) / (layOdds - (commission / 100));
+            const profitIfBackWins = (stake * (backOdds - 1)) - (layStake * (layOdds - 1));
+            const profitIfLayWins = (layStake * (1 - (commission / 100))) - stake;
+            
+            return Math.min(profitIfBackWins, profitIfLayWins);
+        }
+        
+        // Update dashboard statistics
+        function updateStats() {
+            const totalBets = bets.length;
+            const activeBets = bets.filter(bet => bet.status === 'Pending').length;
+            const completedBets = bets.filter(bet => bet.status !== 'Pending').length;
+            const wonBets = bets.filter(bet => bet.status === 'Won').length;
+            const lostBets = bets.filter(bet => bet.status === 'Lost').length;
+            
+            // Calculate success rate
+            const successRate = completedBets > 0 ? (wonBets / completedBets) * 100 : 0;
+            
+            // Calculate net profit
+            let netProfit = 0;
+            bets.forEach(bet => {
+                netProfit += calculateGuaranteedProfit(bet.backOdds, bet.layOdds, bet.stake);
+            });
+            
+            document.getElementById('total-bets').textContent = totalBets;
+            document.getElementById('active-bets').textContent = activeBets;
+            document.getElementById('completed-bets').textContent = completedBets;
+            document.getElementById('success-rate').textContent = `${successRate.toFixed(1)}%`;
+            
+            const netProfitElement = document.getElementById('net-profit');
+            netProfitElement.textContent = `£${netProfit.toFixed(2)}`;
+            netProfitElement.className = netProfit >= 0 ? 'stat-value profit' : 'stat-value loss';
+        }
+        
+        // Save bets to localStorage
+        function saveBets() {
+            localStorage.setItem('premiumBookieBets', JSON.stringify(bets));
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+        
+        // Get status icon
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'Won': return 'check-circle';
+                case 'Lost': return 'times-circle';
+                default: return 'clock';
+            }
+        }
+        
+        // Export data function
+        function exportData() {
+            const dataStr = JSON.stringify(bets, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'matched-betting-data.json';
+            link.click();
+        }
+    </script>
+</body>
+</html>
