@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matched Betting Tracker — Pro PWA</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>body{background:#0d1117;color:#e6edf3;font:14px/1.5 Inter,system-ui;margin:0}.wrap{max-width:1200px;margin:auto;padding:16px}
+.card{background:#1c2128;border:1px solid #30363d;border-radius:12px;padding:12px} .tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.tab{padding:10px 14px;border-radius:999px;border:1px solid #30363d;background:#0f1623;color:#e6edf3;cursor:pointer}.tab.active{background:linear-gradient(90deg,#2ea043,#1e9b73);border:none;color:#fff;font-weight:700}
+.tableWrap{overflow:auto;max-height:480px;border:1px solid #30363d;border-radius:10px;margin-top:8px} table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #30363d;text-align:left} th{color:#8b949e;background:#111827;position:sticky;top:0} .right{text-align:right}
+.status-badge{padding:4px 10px;border-radius:999px;font-size:12px;color:#fff}.status-pending{background:#d29922}.status-back{background:#2ea043}.status-lay{background:#f85149}.status-void{background:#6b7280}.status-cancelled{background:#9ca3af}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.kpi .box{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:10px;text-align:center}.kpi .val{font-weight:800}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px} label{font-size:12px;color:#8b949e;display:block;margin-bottom:4px}
+input,select,button,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #30363d;background:#0f1623;color:#e6edf3} input[type=checkbox]{width:auto}
+.btn{background:linear-gradient(90deg,#2ea043,#1e9b73);border:none;color:#fff;font-weight:700;cursor:pointer}.btn.sec{background:transparent;border:1px solid #30363d;color:#e6edf3;font-weight:600}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:820px){.row{grid-template-columns:1fr}.kpi{grid-template-columns:1fr}.charts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Matched Betting Tracker — Pro</h1>
+  <div class="tabs"><button class="tab active" data-tab="calc">Calculator</button><button class="tab" data-tab="tracker">Tracker</button><button class="tab" data-tab="reports">Reports</button><button class="tab" data-tab="guide">Guide</button><button class="tab" data-tab="bin">Recycle Bin</button></div>
+
+  <section id="calc" class="card panel active">
+    <div class="row">
+      <div><label>Bet type</label><select id="betType"><option value="QB">Qualifying Bet</option><option value="SNR">Free Bet (SNR)</option></select></div>
+      <div><label>Odds format</label><select id="oddsFormat"><option value="dec">Decimal</option><option value="frac">Fractional</option><option value="amer">American</option></select></div>
+    </div>
+    <div class="row"><div><label>Back stake (£)</label><input id="backStake" type="number" value="10" step="0.01"></div><div><label>Commission %</label><input id="comm" type="number" value="2" step="0.01"></div></div>
+    <div class="row"><div><label>Back odds</label><input id="backOdds" type="text" value="3.2"></div><div><label>Lay odds</label><input id="layOdds" type="text" value="3.35"></div></div>
+    <div class="row"><div><label>Bookmaker</label><input id="bookie" placeholder="SkyBet"></div><div><label>Event</label><input id="event" placeholder="Arsenal v Spurs — Draw"></div></div>
+    <div><label>Notes</label><input id="notes" placeholder="2UP, price boost"></div>
+    <div class="row" style="margin-top:8px"><button id="calcBtn" class="btn sec">Calculate</button><button id="logBtn" class="btn">Add to Tracker</button></div>
+    <div class="kpi" style="margin-top:8px">
+      <div class="box"><div>Lay stake</div><div id="kLayStake" class="val">£0.00</div></div>
+      <div class="box"><div>Liability</div><div id="kLiability" class="val">£0.00</div></div>
+      <div class="box"><div>Expected profit</div><div id="kProfit" class="val">£0.00</div></div>
+    </div>
+    <div style="margin-top:6px"><div>If Back wins: <span id="outBack">–</span></div><div>If Lay wins: <span id="outLay">–</span></div></div>
+    <div id="exposureWarn" style="display:none;color:#f85149;font-weight:700;margin-top:6px">Warning: liability exceeds exposure cap</div>
+  </section>
+
+  <section id="tracker" class="panel" style="display:none">
+    <div class="card">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <input id="search" placeholder="Search bookmaker, event, notes" style="flex:1;min-width:180px">
+        <select id="statusFilter"><option value="">All statuses</option><option>Pending</option><option>Back Won</option><option>Lay Won</option><option>Void</option><option>Cancelled</option></select>
+        <select id="bookFilter"><option value="">All bookmakers</option></select>
+        <select id="typeFilter"><option value="">All bet types</option><option value="QB">Qualifying Bet</option><option value="SNR">Free Bet (SNR)</option></select>
+        <button id="clearFilters" class="btn sec">Clear</button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button id="exportCsv" class="btn sec"><i class="fa-solid fa-file-arrow-down"></i> CSV</button>
+          <button id="exportXlsx" class="btn sec"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          <input id="csvInput" type="file" accept=".csv" style="display:none">
+          <button id="importCsv" class="btn sec"><i class="fa-solid fa-file-arrow-up"></i> Import</button>
+          <button id="clearAll" class="btn" style="background:#f85149">Clear All</button>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="box"><div>P&L</div><div id="pnlNow" class="val">£0.00</div></div>
+        <div class="box"><div>ROI</div><div id="roiNow" class="val">0%</div></div>
+        <div class="box"><div>Pending</div><div id="pendingNow" class="val">0</div></div>
+      </div>
+      <div class="tableWrap" style="margin-top:8px">
+        <table id="logTable"><thead><tr><th>Date</th><th>Bookie</th><th>Event</th><th class="right">Back</th><th class="right">Lay</th><th>Status</th><th class="right">Profit</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="charts" style="margin-top:8px">
+        <div class="card"><div style="color:#8b949e">Monthly P&L</div><canvas id="chartMonthly" height="120"></canvas></div>
+        <div class="card"><div style="color:#8b949e">Profit by bookmaker</div><canvas id="chartBookie" height="120"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reports" class="panel" style="display:none">
+    <div class="card">
+      <div class="charts">
+        <div class="card"><div style="color:#8b949e">Last 30 days P&L</div><canvas id="chart30" height="120"></canvas></div>
+        <div class="card"><div style="color:#8b949e">Streaks</div><div id="streaks" style="margin-top:8px"></div><button id="exportPdf" class="btn sec" style="margin-top:8px"><i class="fa-solid fa-file-pdf"></i> Export PDF</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="guide" class="panel" style="display:none"><div class="card"><h3>How to use</h3><ol><li>Calculate lay stake in Calculator.</li><li>Add to Tracker.</li><li>Expand a row’s details to update status.</li><li>Use filters, charts, and exports.</li></ol></div></section>
+
+  <section id="bin" class="panel" style="display:none">
+    <div class="card"><h3>Recycle Bin</h3><div class="tableWrap"><table id="binTable"><thead><tr><th>Date</th><th>Bookie</th><th>Event</th><th></th></tr></thead><tbody></tbody></table></div></div>
+  </section>
+</div>
+
+<script>
+const STORE_KEY='mb_store_v3'; const BIN_KEY='mb_recycle_v3';
+const SETTINGS_KEY='mb_settings_v3'; const HISTORY_KEY='mb_history_v3';
+const $=id=>document.getElementById(id); const fmt=(n)=>Number(n||0).toFixed(2);
+function showTab(id){ document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id)); document.querySelectorAll('.panel').forEach(p=>p.style.display = (p.id===id)?'block':'none'); }
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+function currencySymbol(code){ return code==='USD'?'$':code==='EUR'?'€':'£'; }
+function getSettings(){ try{return JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}catch{return{}} }
+function saveSettings(s){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+function setCurrencyUI(){ const cur=(getSettings().currency||'GBP'); /* could set symbols in UI */ }
+
+// Seed demo once
+(function seed(){ if(localStorage.getItem('mb_seed_v3')) return;
+  function add({date, bookie, event, type, S, B, L, comm=2, nsb=false, status='Pending', notes=''}){
+    const c=comm/100, lay=(type==='QB'&&!nsb)?(S*(B-1))/((L-1)*(1-c)):(S*B)/(L*(1-c)), liability=lay*(L-1);
+    const backWin=S*(B-1)-liability, layWin=(type==='QB'&&!nsb)?(lay*(1-c)-S):(lay*(1-c));
+    let actual=0; if(status==='Back Won') actual=Number(backWin.toFixed(2)); else if(status==='Lay Won') actual=Number(layWin.toFixed(2));
+    return {id:crypto.randomUUID(),date,bookie,event,type,backStake:S,backOdds:B,layStake:lay,layOdds:L,liability,exp:Math.min(backWin,layWin),notes,noStakeBack:nsb,status,actual,backWin:Number(backWin.toFixed(2)),layWin:Number(layWin.toFixed(2)),comm:comm};
+  }
+  const d=n=>new Date(Date.now()-n*86400000).toISOString().slice(0,10);
+  const data=[
+    add({date:d(5), bookie:'SkyBet', event:'Arsenal v Spurs — Draw', type:'QB',  S:20, B:3.2, L:3.35, comm:2, nsb:false, status:'Lay Won'}),
+    add({date:d(12),bookie:'Bet365', event:'City v Villa — Over 2.5', type:'SNR', S:10, B:4.5, L:4.6,  comm:2, nsb:true,  status:'Back Won'}),
+    add({date:d(18),bookie:'PaddyPower',event:'Chelsea v Brighton — Home', type:'QB', S:25, B:2.1, L:2.14, comm:2, nsb:false, status:'Pending'}),
+    add({date:d(25),bookie:'Coral',event:'Liverpool v West Ham — BTTS', type:'QB', S:15, B:3.8, L:3.9, comm:3, nsb:false, status:'Back Won'})
+  ];
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({currency:'GBP',locale:'en-GB',exposureCap:0,tickSize:'0.01'}));
+  localStorage.setItem('mb_seed_v3','1');
+})();
+
+// Odds parsing
+function parseOdds(str, fmt){
+  str=String(str||'').trim();
+  if(fmt==='dec') return parseFloat(str);
+  if(fmt==='frac'){ const m=str.split('/'); if(m.length===2){ const a=parseFloat(m[0]), b=parseFloat(m[1]); if(b>0) return 1+a/b; } }
+  if(fmt==='amer'){ const a=parseFloat(str); if(isNaN(a)) return NaN; return a>=0 ? 1 + a/100 : 1 + 100/Math.abs(a); }
+  return parseFloat(str);
+}
+function tickRound(x){ const t=parseFloat(getSettings().tickSize||'0.01'); return Math.round(x/t)*t; }
+function showExposureWarn(liability){ const cap=Number(getSettings().exposureCap||0); $('exposureWarn').style.display = (cap>0 && liability>cap)?'block':'none'; }
+
+function calculate(){
+  const fmtSel=$('oddsFormat').value;
+  const type=$('betType').value, S=parseFloat($('backStake').value||0), B=parseOdds($('backOdds').value, fmtSel), L=parseOdds($('layOdds').value, fmtSel), c=parseFloat($('comm').value||0)/100;
+  if(!isFinite(B)||!isFinite(L)) return;
+  const nsb=(type==='SNR');
+  const lay=(type==='QB'&&!nsb)?(S*(B-1))/((L-1)*(1-c)):(S*B)/(L*(1-c));
+  const layRounded = Math.max(0, Number(tickRound(lay).toFixed(2)));
+  const liability=layRounded*(L-1);
+  const backWin=S*(B-1)-liability;
+  const layWin=(type==='QB'&&!nsb)?(layRounded*(1-c)-S):(layRounded*(1-c));
+  const exp=Math.min(backWin,layWin);
+  const cur=currencySymbol(getSettings().currency||'GBP');
+  $('kLayStake').textContent=cur+fmt(layRounded);
+  $('kLiability').textContent=cur+fmt(liability);
+  $('kProfit').textContent=cur+fmt(exp);
+  $('outBack').textContent=cur+fmt(backWin);
+  $('outLay').textContent=cur+fmt(layWin);
+  showExposureWarn(liability);
+  return {lay:layRounded, liability, backWin, layWin, exp, nsb, B, L};
+}
+$('calcBtn').onclick=calculate;
+$('logBtn').onclick=()=>{
+  const r=calculate(); if(!r) return;
+  const entry={id:crypto.randomUUID(),date:new Date().toISOString().slice(0,10),bookie:$('bookie').value||'-',event:$('event').value||'-',type:$('betType').value,backStake:+$('backStake').value,backOdds:r.B,layStake:r.lay,layOdds:r.L,liability:r.liability,exp:r.exp,notes:$('notes').value||'',noStakeBack:r.nsb,status:'Pending',actual:0,backWin:Number(r.backWin.toFixed(2)),layWin:Number(r.layWin.toFixed(2)),comm:+$('comm').value};
+  const d=read(); d.push(entry); save(d); render(); showTab('tracker');
+};
+
+function read(){ try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch{return[]} }
+function save(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); localStorage.setItem('mb_last_updated', new Date().toISOString()); }
+
+function unique(arr,key){ return [...new Set(arr.map(x=>x[key]).filter(Boolean))]; }
+function buildBookFilter(data){ const sel=$('bookFilter'); const cur=sel.value; sel.innerHTML='<option value="">All bookmakers</option>'+unique(data,'bookie').map(b=>`<option ${b===cur?'selected':''}>${esc(b)}</option>`).join(''); }
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;","&gt":"&gt;",""":"&quot;","'":"&#039;"}[m]))}
+function badge(s){const c={'Pending':'status-pending','Back Won':'status-back','Lay Won':'status-lay','Void':'status-void','Cancelled':'status-cancelled'}[s]||'status-pending';return `<span class="status-badge ${c}">${s}</span>`}
+function filt(r){ const q=($('search').value||'').toLowerCase(),st=$('statusFilter').value||'',bk=$('bookFilter').value||'',tp=$('typeFilter').value||'';
+  if(q && !(`${r.bookie} ${r.event} ${r.notes||''}`.toLowerCase().includes(q))) return false; if(st && r.status!==st) return false; if(bk && r.bookie!==bk) return false; if(tp && r.type!==tp) return false; return true; }
+
+function setKPI(){
+  const rows=read().filter(filt);
+  const actual=rows.reduce((a,x)=>a+Number(x.actual||0),0);
+  const stake =rows.reduce((a,x)=>a+Number(x.backStake||0),0);
+  const roi=stake>0?actual/stake*100:0;
+  const pending=rows.filter(x=>x.status==='Pending').length;
+  const cur=currencySymbol(getSettings().currency||'GBP');
+  $('pnlNow').textContent=cur+fmt(actual); $('roiNow').textContent=roi.toFixed(1)+'%'; $('pendingNow').textContent=String(pending);
+}
+
+function render(){
+  const data=read(); buildBookFilter(data); setKPI();
+  const rows=data.filter(filt).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const tb=document.querySelector('#logTable tbody'); tb.innerHTML='';
+  const cur=currencySymbol(getSettings().currency||'GBP');
+  rows.forEach(r=>{
+    const tr=document.createElement('tr'); tr.dataset.id=r.id;
+    tr.innerHTML=`<td>${r.date}</td><td>${esc(r.bookie)}</td><td>${esc(r.event)}</td><td class=right>${cur}${fmt(r.backStake)}</td><td class=right>${cur}${fmt(r.layStake)}</td><td>${badge(r.status)}</td><td class=right>${cur}${fmt(r.actual||0)}</td><td class=right><button class="btn sec" data-expand="${r.id}"><i class="fa-solid fa-caret-down"></i></button><button class="btn sec" data-del="${r.id}"><i class="fa-solid fa-trash"></i></button></td>`;
+    tb.appendChild(tr);
+    const det=document.createElement('tr'); det.className='details'; det.dataset.for=r.id;
+    const odds=`Back @ ${Number(r.backOdds).toFixed(2)} | Lay @ ${Number(r.layOdds).toFixed(2)} | Comm ${Number(r.comm||0).toFixed(2)}%`;
+    det.innerHTML=`<td colspan=8><details class=rowx><summary style="color:#8b949e">Details</summary>
+      <div class=row style="margin-top:8px"><div><div style="color:#8b949e">Type</div><div>${r.type}${r.noStakeBack?' (NSB)':''}</div></div>
+      <div><div style="color:#8b949e">Liability</div><div>${cur}${fmt(r.liability)}</div></div>
+      <div><div style="color:#8b949e">Odds / Comm</div><div>${esc(odds)}</div></div>
+      <div><div style="color:#8b949e">Expected Profit</div><div>${cur}${fmt(r.exp)}</div></div></div>
+      ${r.notes?`<div style="margin-top:8px"><div style="color:#8b949e">Notes</div><div>${esc(r.notes)}</div></div>`:''}
+      <div style="margin-top:8px"><label style="color:#8b949e">Update status</label>
+        <select class=statusSel>
+          <option ${r.status==='Pending'?'selected':''}>Pending</option>
+          <option ${r.status==='Back Won'?'selected':''}>Back Won</option>
+          <option ${r.status==='Lay Won'?'selected':''}>Lay Won</option>
+          <option ${r.status==='Void'?'selected':''}>Void</option>
+          <option ${r.status==='Cancelled'?'selected':''}>Cancelled</option>
+        </select>
+      </div>
+    </details></td>`;
+    tb.appendChild(det);
+  });
+  drawCharts();
+}
+
+document.addEventListener('click',e=>{
+  const ex=e.target.closest('[data-expand]'); if(ex){const id=ex.dataset.expand;const row=document.querySelector(`tr[data-id="${id}"]`);const nxt=row&&row.nextSibling;if(nxt&&nxt.classList&&nxt.classList.contains('details')){nxt.querySelector('details').open=!nxt.querySelector('details').open;}}
+  const del=e.target.closest('[data-del]'); if(del){if(confirm('Delete this entry?')){const id=del.dataset.del;const d=read(); const idx=d.findIndex(x=>x.id===id); if(idx>=0){ const [removed]=d.splice(idx,1); const bin=readBin(); bin.push(removed); saveBin(bin); save(d); render(); } } }
+});
+document.addEventListener('change',e=>{
+  if(e.target.classList.contains('statusSel')){
+    const drow=e.target.closest('tr'); const prow=drow.previousSibling; const id=prow?.dataset?.id; if(!id) return;
+    const d=read(); const r=d.find(x=>x.id===id); r.status=e.target.value;
+    const c=Number(r.comm||0)/100, S=Number(r.backStake), B=Number(r.backOdds), L=Number(r.layOdds);
+    const liability = r.liability ?? r.layStake*(L-1);
+    const backWin = S*(B-1) - liability;
+    const layWin = (r.type==='QB' && !r.noStakeBack) ? (r.layStake*(1-c) - S) : (r.layStake*(1-c));
+    r.backWin=Number(backWin.toFixed(2)); r.layWin=Number(layWin.toFixed(2));
+    if(r.status==='Back Won') r.actual=r.backWin; else if(r.status==='Lay Won') r.actual=r.layWin; else r.actual=0;
+    save(d); render();
+  }
+});
+
+// Charts and reports
+let chartMonthly, chartBookie, chart30;
+function drawCharts(){
+  const rows=read().slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const monthMap=new Map(); rows.forEach(r=>{ const k=(r.date||'').slice(0,7)||'-'; monthMap.set(k,(monthMap.get(k)||0)+Number(r.actual||0)); });
+  const mLabels=[...monthMap.keys()], mVals=mLabels.map(k=>Number((monthMap.get(k)||0).toFixed(2)));
+  if(chartMonthly) chartMonthly.destroy(); chartMonthly=new Chart($('#chartMonthly'),{type:'line',data:{labels:mLabels,datasets:[{data:mVals,tension:.25}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true}}}});
+  const bMap=new Map(); rows.forEach(r=>{ bMap.set(r.bookie,(bMap.get(r.bookie)||0)+Number(r.actual||0)); });
+  const bLabels=[...bMap.keys()].slice(0,10), bVals=bLabels.map(k=>Number((bMap.get(k)||0).toFixed(2)));
+  if(chartBookie) chartBookie.destroy(); chartBookie=new Chart($('#chartBookie'),{type:'pie',data:{labels:bLabels,datasets:[{data:bVals}]},options:{plugins:{legend:{position:'bottom'}}}});
+  const today=new Date(); const rows30=rows.filter(r=>((today - new Date(r.date))/86400000)<=30); const dayMap=new Map();
+  for(let i=29;i>=0;i--){ const d=new Date(today- i*86400000).toISOString().slice(0,10); dayMap.set(d,0); }
+  rows30.forEach(r=>{ const k=r.date; dayMap.set(k,(dayMap.get(k)||0)+Number(r.actual||0)); });
+  const dLabels=[...dayMap.keys()], dVals=dLabels.map(k=>Number((dayMap.get(k)||0).toFixed(2)));
+  if(chart30) chart30.destroy(); chart30=new Chart($('#chart30'),{type:'bar',data:{labels:dLabels,datasets:[{data:dVals}]},options:{plugins:{legend:{display:false}},scales:{x:{display:false},y:{beginAtZero:true}}}});
+  // Streaks
+  let winStreak=0, bestWin=0, loseStreak=0, worstLose=0;
+  rows.forEach(r=>{ if((r.actual||0)>0){ winStreak++; loseStreak=0; if(winStreak>bestWin) bestWin=winStreak; } else if((r.actual||0)<0){ loseStreak++; winStreak=0; if(loseStreak>worstLose) worstLose=loseStreak; } else { winStreak=0; loseStreak=0; } });
+  $('streaks') && ($('streaks').textContent=`Best winning streak: ${bestWin}   |   Worst losing streak: ${worstLose}`);
+}
+
+// Export PDF (simple text summary)
+document.getElementById('exportPdf')?.addEventListener('click',()=>{
+  const { jsPDF } = window.jspdf; const doc=new jsPDF();
+  const rows=read(); const total=rows.reduce((a,x)=>a+Number(x.actual||0),0); doc.text(`Matched Betting Summary`, 14, 16);
+  doc.text(`Total P&L: ${currencySymbol(getSettings().currency||'GBP')}${fmt(total)}`, 14, 26);
+  doc.save('mb_summary.pdf');
+});
+
+// Filters + initial render
+['search','statusFilter','bookFilter','typeFilter'].forEach(id=>$(id).addEventListener('input',render));
+$('clearFilters').onclick=()=>{$('search').value='';$('statusFilter').value='';$('bookFilter').value='';$('typeFilter').value='';render()};
+
+// Recycle bin
+function readBin(){ try{return JSON.parse(localStorage.getItem(BIN_KEY)||'[]')}catch{return[]} }
+function saveBin(b){ localStorage.setItem(BIN_KEY, JSON.stringify(b)); }
+function renderBin(){ const b=readBin(), tb=$('#binTable').querySelector('tbody'); tb.innerHTML=''; b.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${r.date||''}</td><td>${esc(r.bookie||'')}</td><td>${esc(r.event||'')}</td><td><button class="btn sec" data-restore="${r.id}">Restore</button></td>`; tb.appendChild(tr); }); }
+document.addEventListener('click',e=>{ const rs=e.target.closest('[data-restore]'); if(rs){ const id=rs.dataset.restore; const b=readBin(); const idx=b.findIndex(x=>x.id===id); if(idx>=0){ const d=read(); d.push(b[idx]); b.splice(idx,1); saveBin(b); save(d); render(); renderBin(); } } });
+
+// Auto-backup weekly
+(function autoBackup(){ const k='mb_last_backup_v3'; const last=Number(localStorage.getItem(k)||0); const now=Date.now();
+  if(now-last>7*86400000){ const data=read(); if(data.length){ const headers=['id','date','bookie','event','type','backStake','backOdds','layStake','layOdds','liability','exp','actual','status','notes','noStakeBack','comm','backWin','layWin']; const csv=[headers.join(',')].concat(data.map(x=>headers.map(h=>JSON.stringify(x[h]??'')).join(','))).join('\n'); const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='matched_bets_backup.csv'; a.click(); } localStorage.setItem(k,String(now)); } })();
+
+render(); drawCharts(); renderBin();
+</script>
+</body>
+</html>
